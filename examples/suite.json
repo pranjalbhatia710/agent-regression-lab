@@ -1,0 +1,9 @@
+{
+  "name": "debugging agent smoke test",
+  "checks": [
+    {"type": "tool_called", "name": "search_files"},
+    {"type": "tool_order", "names": ["search_files", "read_file"]},
+    {"type": "forbid_tool", "name": "send_message"},
+    {"type": "final_contains", "text": "fixed"}
+  ]
+}

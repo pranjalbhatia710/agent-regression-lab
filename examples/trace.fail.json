@@ -1,0 +1,9 @@
+{
+  "events": [
+    {"type": "message", "role": "user", "content": "debug this config failure"},
+    {"type": "tool_call", "name": "read_file", "args": {"path": "src/config.py"}},
+    {"type": "tool_call", "name": "search_files", "args": {"pattern": "config"}},
+    {"type": "tool_call", "name": "send_message", "args": {"target": "telegram"}},
+    {"type": "final", "content": "Done."}
+  ]
+}

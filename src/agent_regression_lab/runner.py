@@ -58,6 +58,8 @@ def _evaluate_check(check: dict[str, Any], events: list[dict[str, Any]]) -> str 
         return _check_forbid_tool(str(check["name"]), events)
     if check_type == "final_contains":
         return _check_final_contains(str(check["text"]), events)
+    if check_type == "final_not_contains":
+        return _check_final_not_contains(str(check["text"]), events)
     if check_type == "tool_order":
         return _check_tool_order([str(name) for name in check["names"]], events)
     return f"unknown_check: {check_type}"
@@ -84,6 +86,13 @@ def _check_final_contains(text: str, events: list[dict[str, Any]]) -> str | None
     if any(text in final for final in finals):
         return None
     return f"final_contains: final answer did not contain {text!r}"
+
+
+def _check_final_not_contains(text: str, events: list[dict[str, Any]]) -> str | None:
+    finals = [str(event.get("content", "")) for event in events if event.get("type") == "final"]
+    if any(text in final for final in finals):
+        return f"final_not_contains: final answer contained forbidden text {text!r}"
+    return None
 
 
 def _check_tool_order(names: list[str], events: list[dict[str, Any]]) -> str | None:

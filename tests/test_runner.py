@@ -112,3 +112,23 @@ def test_missing_order_fails_with_actionable_message(tmp_path: Path):
 
     assert report.passed is False
     assert report.failures == ["tool_order: expected order search_files -> read_file, saw read_file -> search_files"]
+
+
+def test_tool_arg_contains_validates_grounded_tool_inputs(tmp_path: Path):
+    trace = tmp_path / "trace.json"
+    suite = tmp_path / "suite.json"
+    trace.write_text(json.dumps({
+        "events": [
+            {"type": "tool_call", "name": "read_file", "args": {"path": "src/agent/runner.py"}},
+        ]
+    }))
+    suite.write_text(json.dumps({
+        "name": "grounded file inspection",
+        "checks": [
+            {"type": "tool_arg_contains", "name": "read_file", "arg": "path", "text": "src/agent"},
+        ]
+    }))
+
+    report = evaluate_suite(trace, suite)
+
+    assert report.passed is True

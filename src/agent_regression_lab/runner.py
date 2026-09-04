@@ -62,6 +62,8 @@ def _evaluate_check(check: dict[str, Any], events: list[dict[str, Any]]) -> str 
         return _check_final_not_contains(str(check["text"]), events)
     if check_type == "tool_order":
         return _check_tool_order([str(name) for name in check["names"]], events)
+    if check_type == "tool_arg_contains":
+        return _check_tool_arg_contains(str(check["name"]), str(check["arg"]), str(check["text"]), events)
     return f"unknown_check: {check_type}"
 
 
@@ -104,3 +106,13 @@ def _check_tool_order(names: list[str], events: list[dict[str, Any]]) -> str | N
     if position == len(names):
         return None
     return f"tool_order: expected order {' -> '.join(names)}, saw {' -> '.join(seen)}"
+
+
+def _check_tool_arg_contains(name: str, arg: str, text: str, events: list[dict[str, Any]]) -> str | None:
+    for event in events:
+        if event.get("type") != "tool_call" or event.get("name") != name:
+            continue
+        args = event.get("args")
+        if isinstance(args, dict) and text in str(args.get(arg, "")):
+            return None
+    return f"tool_arg_contains: {name}.{arg} did not contain {text!r}"

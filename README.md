@@ -9,6 +9,7 @@ Most agent eval tools are either huge benchmark platforms or observability dashb
 - required tool calls happened
 - unsafe/forbidden tools were not called
 - tool calls happened in the expected order
+- repeated tool loops stayed under an explicit budget
 - final answer contains required text
 
 This is meant for boring reliability bugs:
@@ -110,6 +111,26 @@ Passes when those tools appear in that order. Other tool calls may exist between
 ```
 
 Passes when any final event contains the text.
+
+### `tool_arg_contains`
+
+```json
+{"type": "tool_arg_contains", "name": "read_file", "arg": "path", "text": "src/agent"}
+```
+
+Passes when at least one call to the named tool has an argument containing the
+expected text. Use this to catch regressions where an agent still calls the right
+tool but points it at the wrong file, URL, or command.
+
+### `max_tool_calls`
+
+```json
+{"type": "max_tool_calls", "name": "search_files", "count": 2}
+```
+
+Passes when the named tool is called no more than `count` times. This is useful
+for guarding against repeated search/read/retry loops that make agent runs slow,
+expensive, or noisy without improving the final answer.
 
 ## Trace format
 

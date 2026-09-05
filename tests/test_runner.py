@@ -132,3 +132,26 @@ def test_tool_arg_contains_validates_grounded_tool_inputs(tmp_path: Path):
     report = evaluate_suite(trace, suite)
 
     assert report.passed is True
+
+
+def test_max_tool_calls_detects_repeated_tool_loops(tmp_path: Path):
+    trace = tmp_path / "trace.json"
+    suite = tmp_path / "suite.json"
+    trace.write_text(json.dumps({
+        "events": [
+            {"type": "tool_call", "name": "search_files"},
+            {"type": "tool_call", "name": "search_files"},
+            {"type": "tool_call", "name": "search_files"},
+        ]
+    }))
+    suite.write_text(json.dumps({
+        "name": "loop guard",
+        "checks": [
+            {"type": "max_tool_calls", "name": "search_files", "count": 2},
+        ]
+    }))
+
+    report = evaluate_suite(trace, suite)
+
+    assert report.passed is False
+    assert report.failures == ["max_tool_calls: search_files was called 3 times; expected at most 2"]

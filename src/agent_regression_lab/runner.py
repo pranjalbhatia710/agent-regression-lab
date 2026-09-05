@@ -64,6 +64,8 @@ def _evaluate_check(check: dict[str, Any], events: list[dict[str, Any]]) -> str 
         return _check_tool_order([str(name) for name in check["names"]], events)
     if check_type == "tool_arg_contains":
         return _check_tool_arg_contains(str(check["name"]), str(check["arg"]), str(check["text"]), events)
+    if check_type == "max_tool_calls":
+        return _check_max_tool_calls(str(check["name"]), int(check["count"]), events)
     return f"unknown_check: {check_type}"
 
 
@@ -116,3 +118,10 @@ def _check_tool_arg_contains(name: str, arg: str, text: str, events: list[dict[s
         if isinstance(args, dict) and text in str(args.get(arg, "")):
             return None
     return f"tool_arg_contains: {name}.{arg} did not contain {text!r}"
+
+
+def _check_max_tool_calls(name: str, count: int, events: list[dict[str, Any]]) -> str | None:
+    observed = sum(1 for tool_name in _tool_names(events) if tool_name == name)
+    if observed <= count:
+        return None
+    return f"max_tool_calls: {name} was called {observed} times; expected at most {count}"
